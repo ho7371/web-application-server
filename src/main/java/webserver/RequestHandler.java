@@ -50,19 +50,12 @@ public class RequestHandler extends Thread {
 	*/
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 			DataOutputStream dos = new DataOutputStream(out);
-			
 			InputStreamReader reader = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(reader);
 			
 			String line = null;
-			
-			while ((line = br.readLine()) != null) {
+			while ((line = br.readLine()) != null && !"".equals(line)) {
 				System.out.println(line);
-				
-//				Matcher m = Pattern.compile("GET /(.*) HTTP/1.1").matcher(line);
-//				if (m.find()) {
-//					fileName = m.group(1);
-//				}
 			}
 			
 			byte[] body = "Hello ZINO".getBytes();
