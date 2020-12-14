@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,12 +54,24 @@ public class RequestHandler extends Thread {
 			InputStreamReader reader = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(reader);
 			
-			String line = null;
+			String line = br.readLine();
+			String[] tokens = line.split(" ");
+			String url = tokens[1];
+			
+			System.out.println(line);
+			
 			while ((line = br.readLine()) != null && !"".equals(line)) {
 				System.out.println(line);
 			}
 			
-			byte[] body = "Hello ZINO".getBytes();
+			byte[] body = null;
+			
+			if (url.equals("/index.html")) {
+				body = Files.readAllBytes(new File("./webapp" + url).toPath());
+			} else {
+				body = "Hello ZINO".getBytes();
+			}
+			
 			response200Header(dos, body.length);
 			responseBody(dos, body);
 			
