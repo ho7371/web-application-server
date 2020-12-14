@@ -15,7 +15,38 @@
 * 각 요구사항을 구현하는 것이 중요한 것이 아니라 구현 과정을 통해 학습한 내용을 인식하는 것이 배움에 중요하다. 
 
 ### 요구사항 1 - http://localhost:8080/index.html로 접속시 응답
-* 
+* InputStream 과 OutputStream에 대해서 알게 되었다.
+* InputSteam > InputStreamReader > BufferedReader 으로 확장되며
+* 결과적으로 BufferedReader(new InputStreamReader(new InputStream)) 이렇게 사용된다.
+
+* read 관련 함수의 가장 원형이 되는 InputStream의 read()는 1 byte 단위로 읽는다.
+* 문자단위로 읽으려면 InputStreamReader의 read()를
+* 한 줄 단위로 읽으려면 BufferedReader의 readLine()을 이용한다.
+
+```
+참고사항 : InputSteam > InputStreamReader > BufferedReader
+		// 1byte 읽기 ("a")		: InputStream
+		int a = in.read();
+		System.out.println(a);
+		
+		// 3byte 읽기	 ("abc")	: InputStream
+		byte[] b = new byte[3];
+		in.read(b);
+		System.out.println(b[0]);
+		System.out.println(b[1]);
+		System.out.println(b[2]);
+		
+		// 문자로 읽기				: InputStreamReader(new InputStream)
+		InputStreamReader reader = new InputStreamReader(in);
+		char[] c = new char[3];
+		reader.read(c);
+		System.out.println(c);
+		
+		// 한 줄(행) 단위로 읽기			: BufferedReader(new InputStreamReader(new InputStream))
+		BufferedReader br = new BufferedReader(reader);
+		String d = br.readLine();
+		System.out.println(d);
+```
 
 ### 요구사항 2 - get 방식으로 회원가입
 * 
