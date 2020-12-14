@@ -23,29 +23,28 @@
 * 문자단위로 읽으려면 InputStreamReader의 read()를
 * 한 줄 단위로 읽으려면 BufferedReader의 readLine()을 이용한다.
 
-```
-참고사항 : InputSteam > InputStreamReader > BufferedReader
-		// 1byte 읽기 ("a")		: InputStream
-		int a = in.read();
-		System.out.println(a);
-		
-		// 3byte 읽기	 ("abc")	: InputStream
-		byte[] b = new byte[3];
-		in.read(b);
-		System.out.println(b[0]);
-		System.out.println(b[1]);
-		System.out.println(b[2]);
-		
-		// 문자로 읽기				: InputStreamReader(new InputStream)
-		InputStreamReader reader = new InputStreamReader(in);
-		char[] c = new char[3];
-		reader.read(c);
-		System.out.println(c);
-		
-		// 한 줄(행) 단위로 읽기			: BufferedReader(new InputStreamReader(new InputStream))
-		BufferedReader br = new BufferedReader(reader);
-		String d = br.readLine();
-		System.out.println(d);
+```java
+// 1byte 읽기 ("a")		: InputStream
+int a = in.read();
+System.out.println(a);
+
+// 3byte 읽기	 ("abc")	: InputStream
+byte[] b = new byte[3];
+in.read(b);
+System.out.println(b[0]);
+System.out.println(b[1]);
+System.out.println(b[2]);
+
+// 문자로 읽기				: InputStreamReader(new InputStream)
+InputStreamReader reader = new InputStreamReader(in);
+char[] c = new char[3];
+reader.read(c);
+System.out.println(c);
+
+// 한 줄(행) 단위로 읽기			: BufferedReader(new InputStreamReader(new InputStream))
+BufferedReader br = new BufferedReader(reader);
+String d = br.readLine();
+System.out.println(d);
 ```
 
 ### 요구사항 2 - get 방식으로 회원가입
