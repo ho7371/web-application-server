@@ -98,10 +98,13 @@ InputSteam > InputStreamReader > BufferedReader 으로 확장되며
 ```
 
 ### 요구사항 2 - get 방식으로 회원가입
-* 
+* requestLine에 메소드, 파라미터가 모두 들어있기 때문에 readLine 한번만 하면 필요한 데이터를 모두 얻는다.  
+여기서는 requestLine에서 파라미터를 분리하여 파싱하는 것이 포인트다.
 
 ### 요구사항 3 - post 방식으로 회원가입
-* 
+* post로 들어오는 request는 requestLine, 헤더 영역, 본문 영역이 분리되어 있다.  
+그래서 각 영역마다 파라미터를 분리하여 원하는 데이터를 추출해야 한다.  
+get 메소드와 분기도 처리해줘야 한다.
 
 ### 요구사항 4 - redirect 방식으로 이동
 * 
