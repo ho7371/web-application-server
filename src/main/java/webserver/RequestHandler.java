@@ -87,7 +87,7 @@ public class RequestHandler extends Thread {
 					user = parseUser(params);
 				}
 				
-				System.out.println(user.toString());
+				body = user.toString().getBytes();
 				
 			} else {
 				body = "Hello ZINO".getBytes();
