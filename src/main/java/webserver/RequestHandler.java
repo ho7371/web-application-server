@@ -71,6 +71,9 @@ public class RequestHandler extends Thread {
 			User user = null;
 			Map<String, String> headerMap = null;
 			
+			String statusCode = "200";
+			String statusMessage = "OK";
+			
 			if (url.equals("/index.html") || url.equals("/user/form.html")) {
 				body = Files.readAllBytes(new File("./webapp" + url).toPath());
 			} else if (url.startsWith("/user/create")) {
@@ -80,11 +83,17 @@ public class RequestHandler extends Thread {
 					String requestPath = url.substring(0, index);
 					String params = url.substring(index+1);
 					user = parseUser(params);
+					
+					statusCode = "302";
+					statusMessage = "Found";
 				} else if ("POST".equals(method)) {
 					headerMap = getHeader(br);
 					int contentLength = Integer.parseInt(headerMap.get("Content-Length"));
 					String params = getBody(br, contentLength);
 					user = parseUser(params);
+					
+					statusCode = "302";
+					statusMessage = "Found";
 				}
 				
 				body = user.toString().getBytes();
@@ -93,7 +102,7 @@ public class RequestHandler extends Thread {
 				body = "Hello ZINO".getBytes();
 			}
 			
-			response200Header(dos, body.length);
+			response200Header(dos, body.length, statusCode, statusMessage);
 			responseBody(dos, body);
 			
 		} catch (IOException e) {
@@ -124,11 +133,15 @@ public class RequestHandler extends Thread {
 		return new User( map.get("userId"), map.get("password"), map.get("name"), "");
 	}
 	
-	private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+	private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String statusCode, String statusMessage) {
+		String delimiter = " ";
 		try {
-			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("HTTP/1.1" + delimiter + statusCode + delimiter + statusMessage + delimiter + "\r\n");
 			dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
 			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+			if ("302".equals(statusCode)) {
+				dos.writeBytes("Location: http://210.97.178.50/index.html \r\n");
+			}
 			dos.writeBytes("\r\n");
 		} catch (IOException e) {
 			log.error(e.getMessage());
