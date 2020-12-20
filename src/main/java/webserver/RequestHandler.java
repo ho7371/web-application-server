@@ -140,7 +140,7 @@ public class RequestHandler extends Thread {
 			dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
 			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
 			if ("302".equals(statusCode)) {
-				dos.writeBytes("Location: http://210.97.178.50/index.html \r\n");
+				dos.writeBytes("Location: http://210.97.178.50:9999/index.html \r\n");
 			}
 			dos.writeBytes("\r\n");
 		} catch (IOException e) {
