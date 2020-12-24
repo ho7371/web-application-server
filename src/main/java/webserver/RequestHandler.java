@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
+import db.DataBase;
 import model.User;
 import util.IOUtils;
 
@@ -32,78 +33,100 @@ public class RequestHandler extends Thread {
 		this.connection = connectionSocket;
 	}
 
+	public void run2() {
+		// request 에서 읽어들인다.
+			// 1) header를 읽는다.
+			// 2) body를 읽는다.
+
+		// url에 따라 분기한다.
+
+		// 각 분기에 맞는 처리를 한다.
+			// 1) 파일 출력
+			// 2) 처리
+
+		// response를 작성하여 보낸다.
+			// 1) header를 작성한다.
+			// 2) body를 작성한다.
+	}
+	
 	public void run() {
-		/* 참고사항 : InputSteam > InputStreamReader > BufferedReader
-		// 1byte 읽기 ("a")		: InputStream
-		int a = in.read();
-		System.out.println(a);
-		
-		// 3byte 읽기	 ("abc")	: InputStream
-		byte[] b = new byte[3];
-		in.read(b);
-		System.out.println(b[0]);
-		System.out.println(b[1]);
-		System.out.println(b[2]);
-		
-		// 문자로 읽기				: InputStreamReader(new InputStream)
-		InputStreamReader reader = new InputStreamReader(in);
-		char[] c = new char[3];
-		reader.read(c);
-		System.out.println(c);
-		
-		// 한 줄(행) 단위로 읽기			: BufferedReader(new InputStreamReader(new InputStream))
-		BufferedReader br = new BufferedReader(reader);
-		String d = br.readLine();
-		System.out.println(d);
-	*/
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 			DataOutputStream dos = new DataOutputStream(out);
 			InputStreamReader reader = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(reader);
 			
-			String requestLine = br.readLine();
-			String[] tokens = requestLine.split(" ");
-			String method = tokens[0];
-			String url = tokens[1];
-			String httpVersion = tokens[2];
+			String		requestLine	= br.readLine();
+			String[]	tokens		= requestLine.split(" ");
+			String		method		= tokens[0];
+			String		url			= tokens[1];
+			String		httpVersion	= tokens[2];
+			Map<String, String> requestHeaderMap = null;
 			
-			byte[] body = null;
+			StringBuilder responseHeader = new StringBuilder();
+			byte[] responseBody = null;
+			String responseStatusCode = "200";
+			String responseStatusMessage = "OK";
+			Map<String, String> responseHeaderMap = null;
+			
 			User user = null;
-			Map<String, String> headerMap = null;
 			
-			String statusCode = "200";
-			String statusMessage = "OK";
-			
-			if (url.equals("/index.html") || url.equals("/user/form.html")) {
-				body = Files.readAllBytes(new File("./webapp" + url).toPath());
-			} else if (url.startsWith("/user/create")) {
+			if (url.equals("/index.html") || url.equals("/user/form.html") || url.equals("/user/login.html") || url.equals("/user/login_failed.html")) {
+				requestHeaderMap = getHeader(br);
+				String cookieStr = requestHeaderMap.get("Cookie");
 				
+				if (!"".equals(cookieStr)) {
+					String[] param = cookieStr.split("[=]");
+					requestHeaderMap.put(param[0], param[1]);
+				}
+				
+				responseBody = Files.readAllBytes(new File("./webapp" + url).toPath());
+			} else if (url.startsWith("/user/create")) {
 				if ("GET".equals(method)) {
 					int index = url.indexOf("?");
 					String requestPath = url.substring(0, index);
 					String params = url.substring(index+1);
 					user = parseUser(params);
-					
-					statusCode = "302";
-					statusMessage = "Found";
 				} else if ("POST".equals(method)) {
-					headerMap = getHeader(br);
-					int contentLength = Integer.parseInt(headerMap.get("Content-Length"));
+					requestHeaderMap = getHeader(br);
+					int contentLength = Integer.parseInt(requestHeaderMap.get("Content-Length"));
 					String params = getBody(br, contentLength);
 					user = parseUser(params);
-					
-					statusCode = "302";
-					statusMessage = "Found";
 				}
 				
-				body = user.toString().getBytes();
+				DataBase.addUser(user);
+				
+				responseStatusCode = "302";
+				responseStatusMessage = "Found";
+				responseHeader.append("Location: http://210.97.178.50:9999/index.html \r\n");
+				
+			} else if (url.startsWith("/user/login")) {
+				
+				requestHeaderMap = getHeader(br);
+				int contentLength = Integer.parseInt(requestHeaderMap.get("Content-Length"));
+				String params = getBody(br, contentLength);
+				User currentUser = parseUser(params);
+				
+				User user2 = DataBase.findUserById(currentUser.getUserId());
+				boolean logined = user2 != null && currentUser.getPassword().equals(user2.getPassword());
+				
+				if (logined) {
+					responseHeader.append("Set-Cookie: logined=true \r\n");
+					responseHeader.append("Location: http://210.97.178.50:9999/index.html \r\n");
+				} else {
+					responseHeader.append("Set-Cookie: logined=false \r\n");
+					responseHeader.append("Location: http://210.97.178.50:9999/user/login_failed.html \r\n");
+				}
+			
+				responseStatusCode = "302";
+				responseStatusMessage = "Found";
 				
 			} else {
-				body = "Hello ZINO".getBytes();
+				responseStatusCode = "404";
+				responseStatusMessage = "NotFound";
 			}
 			
-			response200Header(dos, body.length, statusCode, statusMessage);
-			responseBody(dos, body);
+			response200Header(dos, responseBody.length, responseStatusCode, responseStatusMessage);
+			responseBody(dos, responseBody);
 			
 		} catch (IOException e) {
 			log.error(e.getMessage());
@@ -156,4 +179,5 @@ public class RequestHandler extends Thread {
 			log.error(e.getMessage());
 		}
 	}
+	
 }

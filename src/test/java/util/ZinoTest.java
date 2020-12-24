@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -14,6 +16,11 @@ import model.User;
 public class ZinoTest {
 
 	@Test
+	public void regex() {
+		String str = "/user/index.html";
+		
+	}
+	
 	public void post_header() {
 		String str = "Content-Length: 59";
 		String[] arr = str.split("[:][ ]");
