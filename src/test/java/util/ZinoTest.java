@@ -16,6 +16,13 @@ import model.User;
 public class ZinoTest {
 
 	@Test
+	public void indexHtml_응답하기() {
+		String reqLine = "GET /index.html HTTP/1.1";
+		
+		String[] tokens = reqLine.split(" ");
+		assertTrue("/index.html".equals(tokens[1]));
+	}
+	
 	public void regex() {
 		String str = "/user/index.html";
 		

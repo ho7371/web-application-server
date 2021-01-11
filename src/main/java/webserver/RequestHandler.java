@@ -39,11 +39,26 @@ public class RequestHandler extends Thread {
 		log.debug("New Client Connected! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
 
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-			DataOutputStream dos = new DataOutputStream(out);
+			InputStreamReader	isr	= new InputStreamReader(in);
+			BufferedReader		br	= new BufferedReader(isr);
+			DataOutputStream	dos	= new DataOutputStream(out);
 
 			// TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
+			String requestLine = br.readLine();
+
+			if (requestLine == null || "".equals(requestLine.trim())) {
+				return;
+			}
+
+			String[]	tokens	= requestLine.split(" ");
+			String		url		= tokens[1];
+
 			byte[] body = "Hello World".getBytes();
+
+			if (url.startsWith("/index.html")) {
+				String filePath = "./webapp" + url;
+				body = Files.readAllBytes(new File(filePath).toPath());
+			}
 
 			response200Header(dos, body.length);
 			responseBody(dos, body);
