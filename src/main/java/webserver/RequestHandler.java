@@ -55,7 +55,7 @@ public class RequestHandler extends Thread {
 
 			byte[] body = "Hello World".getBytes();
 
-			if (url.startsWith("/index.html")) {
+			if (url.endsWith(".html")) {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
 			}
