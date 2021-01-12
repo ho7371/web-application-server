@@ -58,6 +58,20 @@ public class RequestHandler extends Thread {
 			if (url.endsWith(".html")) {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
+			} else if (url.startsWith("/user/create")) {
+				int indexOfQuestion = url.indexOf("?");
+				// index + 1을 하지 않으면 ?가 포함된다.
+				String queryString = url.substring(indexOfQuestion + 1, url.length());
+				Map<String, String> paramMap = HttpRequestUtils.parseQueryString(queryString);
+				
+				String userId	= paramMap.get("userId");
+				String password	= paramMap.get("password");
+				String name		= paramMap.get("name");
+				String email	= paramMap.get("email");
+				
+				DataBase.addUser(new User(userId, password, name, email));
+				
+				log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
 			}
 
 			response200Header(dos, body.length);

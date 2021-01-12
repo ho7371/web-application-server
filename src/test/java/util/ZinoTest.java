@@ -16,9 +16,17 @@ import model.User;
 public class ZinoTest {
 
 	@Test
+	public void getParameter() {
+		String reqLine = "/user/create?userId=javajigi&password=password&name=Zino";
+		int index = reqLine.indexOf("?");
+		assertTrue(index == 12);
+		
+		String subStr = reqLine.substring(index+1, reqLine.length());
+		assertTrue("userId=javajigi&password=password&name=Zino".equals(subStr));
+	}
+	
 	public void indexHtml_응답하기() {
 		String reqLine = "GET /index.html HTTP/1.1";
-		
 		String[] tokens = reqLine.split(" ");
 		assertTrue("/index.html".equals(tokens[1]));
 	}
