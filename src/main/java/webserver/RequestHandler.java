@@ -3,23 +3,17 @@ package webserver;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
 
 import db.DataBase;
 import model.User;
@@ -36,7 +30,7 @@ public class RequestHandler extends Thread {
 	}
 
 	public void run() {
-		log.debug("New Client Connected! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
+//		log.debug("New Client Connected! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
 
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 			InputStreamReader	isr	= new InputStreamReader(in);
@@ -51,6 +45,7 @@ public class RequestHandler extends Thread {
 			}
 
 			String[]	tokens	= requestLine.split(" ");
+			String		method	= tokens[0];
 			String		url		= tokens[1];
 
 			byte[] body = "Hello World".getBytes();
@@ -59,21 +54,53 @@ public class RequestHandler extends Thread {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
 			} else if (url.startsWith("/user/create")) {
-				int indexOfQuestion = url.indexOf("?");
-				// index + 1을 하지 않으면 ?가 포함된다.
-				String queryString = url.substring(indexOfQuestion + 1, url.length());
-				Map<String, String> paramMap = HttpRequestUtils.parseQueryString(queryString);
-				
-				String userId	= paramMap.get("userId");
-				String password	= paramMap.get("password");
-				String name		= paramMap.get("name");
-				String email	= paramMap.get("email");
-				
-				DataBase.addUser(new User(userId, password, name, email));
-				
-				log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
-			}
+				if ("GET".equals(method)) {
+					int indexOfQuestion = url.indexOf("?");
+					// index + 1을 하지 않으면 ?가 포함된다.
+					String queryString = url.substring(indexOfQuestion + 1, url.length());
+					Map<String, String> paramMap = HttpRequestUtils.parseQueryString(queryString);
 
+					// 4. User 객체를 생성 & 저장한다.
+					String userId	= paramMap.get("userId");
+					String password	= paramMap.get("password");
+					String name		= paramMap.get("name");
+					String email	= paramMap.get("email");
+
+					DataBase.addUser(new User(userId, password, name, email));
+					
+					log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
+				} else if ("POST".equals(method)) {
+
+					// 1. 헤더에서 Content-Length 값을 추출한다.
+					Map<String, String> headerMap = new HashMap<>();
+					String line = null;
+
+					while ((line = br.readLine()) != null && !line.isBlank()) {
+						String[] arr = line.split(": ");
+						headerMap.put(arr[0], arr[1]);
+					}
+
+					String contentLength = headerMap.get("Content-Length");
+
+					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
+					String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));
+
+					// 3. 추출한 MessageBody에서 파라미터를 파싱한다.
+					Map<String, String> paramMap = HttpRequestUtils.parseQueryString(messageBody);
+
+					// 4. User 객체를 생성 & 저장한다.
+					String userId	= paramMap.get("userId");
+					String password	= paramMap.get("password");
+					String name		= paramMap.get("name");
+					String email	= paramMap.get("email");
+
+					DataBase.addUser(new User(userId, password, name, email));
+
+					log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
+				}
+				
+			}
+			// 6. 정상적으로 응답한다.
 			response200Header(dos, body.length);
 			responseBody(dos, body);
 		} catch (Exception e) {
