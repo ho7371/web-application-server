@@ -54,21 +54,19 @@ public class RequestHandler extends Thread {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
 			} else if (url.startsWith("/user/create")) {
+
+				Map<String, String> paramMap = null;
+
 				if ("GET".equals(method)) {
+
+					// 1. 쿼리스트링을 추출한다.
 					int indexOfQuestion = url.indexOf("?");
-					// index + 1을 하지 않으면 ?가 포함된다.
+					// (index + 1을 하지 않으면 ?가 포함된다.)
 					String queryString = url.substring(indexOfQuestion + 1, url.length());
-					Map<String, String> paramMap = HttpRequestUtils.parseQueryString(queryString);
 
-					// 4. User 객체를 생성 & 저장한다.
-					String userId	= paramMap.get("userId");
-					String password	= paramMap.get("password");
-					String name		= paramMap.get("name");
-					String email	= paramMap.get("email");
-
-					DataBase.addUser(new User(userId, password, name, email));
+					// 2. 쿼리스트링에서 파라미터를 추출한다.
+					paramMap = HttpRequestUtils.parseQueryString(queryString);
 					
-					log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
 				} else if ("POST".equals(method)) {
 
 					// 1. 헤더에서 Content-Length 값을 추출한다.
@@ -85,20 +83,24 @@ public class RequestHandler extends Thread {
 					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
 					String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));
 
-					// 3. 추출한 MessageBody에서 파라미터를 파싱한다.
-					Map<String, String> paramMap = HttpRequestUtils.parseQueryString(messageBody);
-
-					// 4. User 객체를 생성 & 저장한다.
-					String userId	= paramMap.get("userId");
-					String password	= paramMap.get("password");
-					String name		= paramMap.get("name");
-					String email	= paramMap.get("email");
-
-					DataBase.addUser(new User(userId, password, name, email));
-
-					log.debug("회원가입에 성공했습니다. 유저 = {}", DataBase.findUserById(userId));
+					// 3. MessageBody에서 파라미터를 추출한다.
+					paramMap = HttpRequestUtils.parseQueryString(messageBody);
 				}
 				
+				// 4. User 객체를 생성 & 저장한다.
+				String userId	= paramMap.get("userId");
+				String password	= paramMap.get("password");
+				String name		= paramMap.get("name");
+				String email	= paramMap.get("email");
+
+				DataBase.addUser(new User(userId, password, name, email));
+
+				// 5. 회원가입 여부를 기록한다.
+				if (DataBase.findUserById(userId) != null) {
+					log.debug(">>>>> 회원가입에 성공했습니다. <<<<<");
+				} else {
+					log.debug("===== 회원가입에 실패 =====");
+				}
 			}
 			// 6. 정상적으로 응답한다.
 			response200Header(dos, body.length);
