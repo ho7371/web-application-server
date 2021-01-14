@@ -53,6 +53,10 @@ public class RequestHandler extends Thread {
 			if (url.endsWith(".html")) {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
+
+				// 정상적으로 응답한다.
+				response200Header(dos, body.length);
+				responseBody(dos, body);
 			} else if (url.startsWith("/user/create")) {
 
 				Map<String, String> paramMap = null;
@@ -86,7 +90,7 @@ public class RequestHandler extends Thread {
 					// 3. MessageBody에서 파라미터를 추출한다.
 					paramMap = HttpRequestUtils.parseQueryString(messageBody);
 				}
-				
+
 				// 4. User 객체를 생성 & 저장한다.
 				String userId	= paramMap.get("userId");
 				String password	= paramMap.get("password");
@@ -101,12 +105,29 @@ public class RequestHandler extends Thread {
 				} else {
 					log.debug("===== 회원가입에 실패 =====");
 				}
+
+				// 6. URL 리다이렉션을 통해 브라우저에 남아있는 회원가입 정보를 재사용하기 어렵게 처리한다.
+				response302Header(dos);
+				dos.flush();
 			}
-			// 6. 정상적으로 응답한다.
-			response200Header(dos, body.length);
-			responseBody(dos, body);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 리다이렉션 (임시 이동)
+	 * 응답 헤더 중 Location을 이용하여 리다이렉션할 위치를 지정한다.
+	 * 리다이렉션을 통해 클라이언트측 브라우저의 URL창 경로도 바뀐다.
+	 * @param dos
+	 */
+	private void response302Header(DataOutputStream dos){
+		try {
+			dos.writeBytes("HTTP/1.1 302 OK \r\n");
+			dos.writeBytes("Location: /index.html \r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e ) {
+			log.error(e.getMessage());
 		}
 	}
 
