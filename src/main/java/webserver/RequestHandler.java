@@ -51,6 +51,15 @@ public class RequestHandler extends Thread {
 			byte[] body = "Hello World".getBytes();
 
 			if (url.endsWith(".html")) {
+				// 로그인 쿠키 확인
+				String line = null;
+				while ((line = br.readLine()) != null && !line.isBlank()) {
+					String[] arr = line.split(": ");
+					if ("Cookie".equals(arr[0])) {
+						log.debug(">>>>> 로그인 쿠키가 있습니다. {}", arr[1]);
+					}
+				}
+
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
 
@@ -109,6 +118,61 @@ public class RequestHandler extends Thread {
 				// 6. URL 리다이렉션을 통해 브라우저에 남아있는 회원가입 정보를 재사용하기 어렵게 처리한다.
 				response302Header(dos);
 				dos.flush();
+			} else if (url.startsWith("/user/login")) {
+
+				Map<String, String> paramMap = null;
+
+				if ("GET".equals(method)) {
+					// 1. 쿼리스트링을 추출한다.
+					int indexOfQuestion = url.indexOf("?");
+					// (index + 1을 하지 않으면 ?가 포함된다.)
+					String queryString = url.substring(indexOfQuestion + 1, url.length());
+
+					// 2. 쿼리스트링에서 파라미터를 추출한다.
+					paramMap = HttpRequestUtils.parseQueryString(queryString);
+				} else if ("POST".equals(method)) {
+
+					// 1. 헤더에서 Content-Length 값을 추출한다.
+					Map<String, String> headerMap = new HashMap<>();
+					String line = null;
+
+					while ((line = br.readLine()) != null && !line.isBlank()) {
+						String[] arr = line.split(": ");
+						headerMap.put(arr[0], arr[1]);
+					}
+
+					String contentLength = headerMap.get("Content-Length");
+
+					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
+					String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));
+
+					// 3. MessageBody에서 파라미터를 추출한다.
+					paramMap = HttpRequestUtils.parseQueryString(messageBody);
+				}
+
+				// 4. User 
+				String userId	= paramMap.get("userId");
+				String password	= paramMap.get("password");
+
+				User user = DataBase.findUserById(userId);
+
+				String location = null;
+				boolean logined = false;
+				if (user == null) {
+					log.debug("===== 해당하는 아이디가 없습니다. =====");
+					location = "/user/login_failed.html";
+				} else if (password.equals(user.getPassword()) == false) {
+					log.debug("===== 비밀번호가 틀렸습니다. =====");
+					location = "/user/login_failed.html";
+				} else {
+					log.debug(">>>>> 로그인에 성공했습니다. <<<<<");
+					location = "/index.html";
+					logined = true;
+				}
+
+				// 6. URL 리다이렉션을 통해 로그인 결과를 보여준다.
+				response302HeaderWithLocationAndCookie(dos, logined, location);
+				dos.flush();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -125,6 +189,17 @@ public class RequestHandler extends Thread {
 		try {
 			dos.writeBytes("HTTP/1.1 302 OK \r\n");
 			dos.writeBytes("Location: /index.html \r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e ) {
+			log.error(e.getMessage());
+		}
+	}
+
+	private void response302HeaderWithLocationAndCookie(DataOutputStream dos, boolean logined, String location){
+		try {
+			dos.writeBytes("HTTP/1.1 302 OK \r\n");
+			dos.writeBytes("Location: " + location +" \r\n");
+			dos.writeBytes("Set-Cookie: logined=" + logined +" \r\n");
 			dos.writeBytes("\r\n");
 		} catch (IOException e ) {
 			log.error(e.getMessage());
