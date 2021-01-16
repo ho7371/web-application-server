@@ -50,18 +50,39 @@ public class RequestHandler extends Thread {
 			String		method	= tokens[0];
 			String		url		= tokens[1];
 
+			// 헤더 Map 생성.
+			Map<String, String> headerMap = new HashMap<>();
+			String line = null;
+			while ((line = br.readLine()) != null && !line.isEmpty()) {
+				String[] arr = line.split(": ");
+				headerMap.put(arr[0], arr[1]);
+			}
+			
+			// 로그인 쿠키 확인
+			boolean logined = false;
+			String cookieStr = headerMap.get("Cookie");
+			if (cookieStr != null) {
+				String[] cookieParam = cookieStr.split("=");
+				logined = Boolean.parseBoolean(cookieParam[1]);
+				if (logined) {
+					log.debug(">>>>> 로그인 쿠키가 있습니다.");
+				}
+			}
+			
+			// 파라미터 Map
+			Map<String, String> paramMap = null;
+			
 			byte[] body = "Hello World".getBytes();
 
-			if (url.endsWith(".html")) {
-				// 로그인 쿠키 확인
-				String line = null;
-				while ((line = br.readLine()) != null && !line.isBlank()) {
-					String[] arr = line.split(": ");
-					if ("Cookie".equals(arr[0])) {
-						log.debug(">>>>> 로그인 쿠키가 있습니다. {}", arr[1]);
-					}
-				}
+			if (url.endsWith(".css")) {
+				String filePath = "./webapp" + url;
+				body = Files.readAllBytes(new File(filePath).toPath());
 
+				// 정상적으로 응답한다.
+				response200HeaderWithContentType(dos, body.length, "text/css");
+				responseBody(dos, body);
+				
+			} else if (url.endsWith(".html")) {
 				String filePath = "./webapp" + url;
 				body = Files.readAllBytes(new File(filePath).toPath());
 
@@ -69,8 +90,6 @@ public class RequestHandler extends Thread {
 				response200Header(dos, body.length);
 				responseBody(dos, body);
 			} else if (url.equals("/user/create")) {
-
-				Map<String, String> paramMap = null;
 
 				if ("GET".equals(method)) {
 
@@ -85,14 +104,6 @@ public class RequestHandler extends Thread {
 				} else if ("POST".equals(method)) {
 
 					// 1. 헤더에서 Content-Length 값을 추출한다.
-					Map<String, String> headerMap = new HashMap<>();
-					String line = null;
-
-					while ((line = br.readLine()) != null && !line.isBlank()) {
-						String[] arr = line.split(": ");
-						headerMap.put(arr[0], arr[1]);
-					}
-
 					String contentLength = headerMap.get("Content-Length");
 
 					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
@@ -122,8 +133,6 @@ public class RequestHandler extends Thread {
 				dos.flush();
 			} else if (url.equals("/user/login")) {
 
-				Map<String, String> paramMap = null;
-
 				if ("GET".equals(method)) {
 					// 1. 쿼리스트링을 추출한다.
 					int indexOfQuestion = url.indexOf("?");
@@ -135,14 +144,6 @@ public class RequestHandler extends Thread {
 				} else if ("POST".equals(method)) {
 
 					// 1. 헤더에서 Content-Length 값을 추출한다.
-					Map<String, String> headerMap = new HashMap<>();
-					String line = null;
-
-					while ((line = br.readLine()) != null && !line.isBlank()) {
-						String[] arr = line.split(": ");
-						headerMap.put(arr[0], arr[1]);
-					}
-
 					String contentLength = headerMap.get("Content-Length");
 
 					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
@@ -159,7 +160,6 @@ public class RequestHandler extends Thread {
 				User user = DataBase.findUserById(userId);
 
 				String location = null;
-				boolean logined = false;
 				if (user == null) {
 					log.debug("===== 해당하는 아이디가 없습니다. =====");
 					location = "/user/login_failed.html";
@@ -176,22 +176,6 @@ public class RequestHandler extends Thread {
 				response302HeaderWithLocationAndCookie(dos, logined, location);
 				dos.flush();
 			} else if (url.equals("/user/list")) {
-				Map<String, String> cookieMap = null;
-
-				//1. 로그인 정보를 헤더에서 뽑는다.
-				String line = null;
-				while ((line = br.readLine()) != null && !line.isBlank()) {
-					String[] arr = line.split(": ");
-					if ("Cookie".equals(arr[0])) {
-						cookieMap = HttpRequestUtils.parseCookies(arr[1]);
-					}
-				}
-
-				boolean logined = false;
-				if (cookieMap != null) {
-					logined = Boolean.parseBoolean(cookieMap.get("logined"));
-				}
-
 				if (logined) {
 					log.debug("=== 로그인이라서 사용자를 출력합니다.");
 					//2. 로그인 상태라면 사용자 목록을 불러온다. 사용자 목록을 출력한다.
@@ -260,6 +244,17 @@ public class RequestHandler extends Thread {
 			dos.writeBytes("HTTP/1.1 200 OK \r\n");
 			dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
 			dos.writeBytes("Set-Cookie: logined=" + logined +" \r\n");
+			dos.writeBytes("Content-Length: " + contentLength +" \r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e ) {
+			log.error(e.getMessage());
+		}
+	}
+
+	private void response200HeaderWithContentType(DataOutputStream dos, int contentLength, String contentType){
+		try {
+			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("Content-Type: " + contentType +";charset=utf-8\r\n");
 			dos.writeBytes("Content-Length: " + contentLength +" \r\n");
 			dos.writeBytes("\r\n");
 		} catch (IOException e ) {
