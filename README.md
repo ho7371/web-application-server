@@ -205,13 +205,58 @@
 ```
 
 ### 요구사항 2 - get 방식으로 회원가입
-* requestLine에 메소드, 파라미터가 모두 들어있기 때문에 readLine 한번만 하면 필요한 데이터를 모두 얻는다.  
-여기서는 requestLine에서 파라미터를 분리하여 파싱하는 것이 포인트다.
+
+```java
+	GET /user/create?userId=zino&password=abcd1234&name=jinho&email=zino@naver.com HTTP/1.1
+```
+
+* GET 방식에서 매개변수는 URI에 포함되어 쿼리스트링의 형태로 서버로 전달된다. 쿼리스트링을 파싱하여 사용자가 보낸 입력값을 추출해야 한다.
+
+
+* 문제는 이렇게 URI에 입력값을 포함하여 전달하면, 아래와 같은 단점이 있다.
+
+
+* 1) URI는 브라우저 주소창에 노출되기 때문에 보다 보안적으로 취약하다.
+
+
+* 2) request line은 길이 제한이 있기 때문에, 보낼 수 있는 값의 크기가 제한적이다.
+
+
+* 정리하자면 GET 방식은 서버에 존재하는 데이터를 가져오기 위한 방식이지, 데이터의 상태를 변경하지 않는다.
 
 ### 요구사항 3 - post 방식으로 회원가입
-* post로 들어오는 request는 requestLine, 헤더 영역, 본문 영역이 분리되어 있다.  
-그래서 각 영역마다 파라미터를 분리하여 원하는 데이터를 추출해야 한다.  
-get 메소드와 분기도 처리해줘야 한다.
+
+```json
+	POST /user/create HTTP/1.1
+	HOST: localhost:8080
+	Connection-Length: 59
+	Content-Type: application/x-www-form-urlencoded
+	Accept: */*	
+
+	userId=zino&password=abcd1234&name=jinho
+```
+
+* GET 방식에서는 URI에 포함되어 전달되던 쿼리스트링이, 메시지 본문을 통해 전달된다. 메소드에 따라 분기처리를 해준다.
+
+
+* 본문 데이터의 길이가 헤더에 Content-Length 라는 필드로 전달된다.
+
+
+* 본문을 Content-Length 만큼 읽어서, 데이터를 파싱하면 된다.
+
+
+* HTML은 기본적으로 GET과 POST 방식만을 지원한다.
+
+
+* 1) HTML은 모든 자원( a태그 링크, css, javascript, image ..)을 GET방식으로 요청한다.
+
+
+* 2) HTML의 Form 태그에서는 GET과 POST 방식만을 지원한다.
+
+
+* 정리하자면 GET 방식은 서버에 존재하는 데이터를 조회하기 위한 방식이며, POST는 데이터의 상태를 변경하는 작업을 위한 방식이다.
+
+* 그 이외의 PUT, DELETE 와 같은 방식은 REST API 설계와 ajax 기반으로 사용된다.
 
 ### 요구사항 4 - redirect 방식으로 이동
 * 
