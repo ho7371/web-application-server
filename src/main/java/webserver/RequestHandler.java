@@ -1,16 +1,13 @@
 package webserver;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -19,8 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import db.DataBase;
 import model.User;
-import util.HttpRequestUtils;
-import util.IOUtils;
 
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -32,35 +27,16 @@ public class RequestHandler extends Thread {
 	}
 
 	public void run() {
-//		log.debug("New Client Connected! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
+		log.debug("New Client Connected! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
 
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-			InputStreamReader	isr	= new InputStreamReader(in);
-			BufferedReader		br	= new BufferedReader(isr);
+			HttpRequest req = new HttpRequest(in);
+			
 			DataOutputStream	dos	= new DataOutputStream(out);
 
-			// TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-			String requestLine = br.readLine();
-
-			if (requestLine == null || "".equals(requestLine.trim())) {
-				return;
-			}
-
-			String[]	tokens	= requestLine.split(" ");
-			String		method	= tokens[0];
-			String		url		= tokens[1];
-
-			// 헤더 Map 생성.
-			Map<String, String> headerMap = new HashMap<>();
-			String line = null;
-			while ((line = br.readLine()) != null && !line.isEmpty()) {
-				String[] arr = line.split(": ");
-				headerMap.put(arr[0], arr[1]);
-			}
-			
 			// 로그인 쿠키 확인
 			boolean logined = false;
-			String cookieStr = headerMap.get("Cookie");
+			String cookieStr = req.getHeader("Cookie");
 			if (cookieStr != null) {
 				String[] cookieParam = cookieStr.split("=");
 				logined = Boolean.parseBoolean(cookieParam[1]);
@@ -68,10 +44,9 @@ public class RequestHandler extends Thread {
 					log.debug(">>>>> 로그인 쿠키가 있습니다.");
 				}
 			}
-			
-			// 파라미터 Map
-			Map<String, String> paramMap = null;
-			
+
+			String url = req.getUrl();
+
 			byte[] body = "Hello World".getBytes();
 
 			if (url.endsWith(".css")) {
@@ -91,33 +66,11 @@ public class RequestHandler extends Thread {
 				responseBody(dos, body);
 			} else if (url.equals("/user/create")) {
 
-				if ("GET".equals(method)) {
-
-					// 1. 쿼리스트링을 추출한다.
-					int indexOfQuestion = url.indexOf("?");
-					// (index + 1을 하지 않으면 ?가 포함된다.)
-					String queryString = url.substring(indexOfQuestion + 1, url.length());
-
-					// 2. 쿼리스트링에서 파라미터를 추출한다.
-					paramMap = HttpRequestUtils.parseQueryString(queryString);
-					
-				} else if ("POST".equals(method)) {
-
-					// 1. 헤더에서 Content-Length 값을 추출한다.
-					String contentLength = headerMap.get("Content-Length");
-
-					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
-					String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));
-
-					// 3. MessageBody에서 파라미터를 추출한다.
-					paramMap = HttpRequestUtils.parseQueryString(messageBody);
-				}
-
 				// 4. User 객체를 생성 & 저장한다.
-				String userId	= paramMap.get("userId");
-				String password	= paramMap.get("password");
-				String name		= paramMap.get("name");
-				String email	= paramMap.get("email");
+				String userId	= req.getParameter("userId");
+				String password	= req.getParameter("password");
+				String name		= req.getParameter("name");
+				String email	= req.getParameter("email");
 
 				DataBase.addUser(new User(userId, password, name, email));
 
@@ -133,29 +86,9 @@ public class RequestHandler extends Thread {
 				dos.flush();
 			} else if (url.equals("/user/login")) {
 
-				if ("GET".equals(method)) {
-					// 1. 쿼리스트링을 추출한다.
-					int indexOfQuestion = url.indexOf("?");
-					// (index + 1을 하지 않으면 ?가 포함된다.)
-					String queryString = url.substring(indexOfQuestion + 1, url.length());
-
-					// 2. 쿼리스트링에서 파라미터를 추출한다.
-					paramMap = HttpRequestUtils.parseQueryString(queryString);
-				} else if ("POST".equals(method)) {
-
-					// 1. 헤더에서 Content-Length 값을 추출한다.
-					String contentLength = headerMap.get("Content-Length");
-
-					// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
-					String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));
-
-					// 3. MessageBody에서 파라미터를 추출한다.
-					paramMap = HttpRequestUtils.parseQueryString(messageBody);
-				}
-
 				// 4. User 
-				String userId	= paramMap.get("userId");
-				String password	= paramMap.get("password");
+				String userId	= req.getParameter("userId");
+				String password	= req.getParameter("password");
 
 				User user = DataBase.findUserById(userId);
 
