@@ -45,7 +45,7 @@ public class RequestHandler extends Thread {
 				}
 			}
 
-			String url = req.getUrl();
+			String url = req.getPath();
 
 			byte[] body = "Hello World".getBytes();
 

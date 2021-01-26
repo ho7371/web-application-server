@@ -13,8 +13,8 @@ public class HttpRequest {
 
 	private InputStream inputStream;
 
-	private String url;
-	private String method;
+	public String path;
+	public String method;
 	private String httpVersion;
 
 	private Map<String, String> headerMap = new HashMap<>();
@@ -26,7 +26,7 @@ public class HttpRequest {
 		initialize();
 	}
 
-	private void initialize () {
+	public void initialize () {
 		try {
 			InputStreamReader	isr	= new InputStreamReader(inputStream);
 			BufferedReader		br	= new BufferedReader(isr);
@@ -39,7 +39,7 @@ public class HttpRequest {
 
 			if ("GET".equals(method)) {
 				
-				parseGETParameterMap(url);
+				parseGETParameterMap(path);
 				
 			} else if ("POST".equals(method)) {
 				
@@ -47,7 +47,7 @@ public class HttpRequest {
 				
 			}
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 	}
 
@@ -58,25 +58,29 @@ public class HttpRequest {
 
 		String[] tokens	= requestLine.split(" ");
 		method = tokens[0];
-		url = tokens[1];
+		path = tokens[1];
 		httpVersion = tokens[2];
 	}
 	
-	private void parseHeaderMap(BufferedReader br) throws Exception {
+	public void parseHeaderMap(BufferedReader br) throws Exception {
 		String line = null;
 
 		while ((line = br.readLine()) != null && !line.isEmpty()) {
 			String[] arr = line.split(": ");
-			headerMap.put(arr[0], arr[1]);
+			if (arr.length > 1) {
+				headerMap.put(arr[0], arr[1]);
+			}
 		}
 	}
 
-	private void parseGETParameterMap(String url) {
-		int indexOfQuestion = url.indexOf("?");									// 1. 쿼리스트링을 추출한다.
+	public void parseGETParameterMap(String str) {
+		int indexOfQuestion = str.indexOf("?");									// 1. 쿼리스트링을 추출한다.
 
-		String queryString = url.substring(indexOfQuestion + 1, url.length());	// (index + 1을 하지 않으면 ?가 포함된다.)
+		setPath(new String(str.substring(0, indexOfQuestion)));
 
-		this.parameterMap = HttpRequestUtils.parseQueryString(queryString);		// 2. 쿼리스트링에서 파라미터를 추출한다.
+		String queryString = new String(str.substring(indexOfQuestion + 1, str.length()));	// (index + 1을 하지 않으면 ?가 포함된다.)
+
+		setParameterMap(HttpRequestUtils.parseQueryString(queryString));		// 2. 쿼리스트링에서 파라미터를 추출한다.
 	}
 
 	private void parsePOSTParameterMap(BufferedReader br) throws Exception {
@@ -87,8 +91,16 @@ public class HttpRequest {
 		this.parameterMap = HttpRequestUtils.parseQueryString(messageBody);		// 3. MessageBody에서 파라미터를 추출한다.
 	}
 
-	public String getUrl() {
-		return url;
+	private void setPath(String path) {
+		this.path = path;
+	}
+
+	private void setParameterMap(Map<String, String> parameterMap) {
+		this.parameterMap = parameterMap;
+	}
+
+	public String getPath() {
+		return path;
 	}
 
 	public String getMethod() {
