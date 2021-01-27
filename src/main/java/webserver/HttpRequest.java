@@ -65,7 +65,7 @@ public class HttpRequest {
 	public void parseHeaderMap(BufferedReader br) throws Exception {
 		String line = null;
 
-		while ((line = br.readLine()) != null && !line.isEmpty()) {
+		while ((line = br.readLine()) != null && !line.isBlank()) {
 			String[] arr = line.split(": ");
 			if (arr.length > 1) {
 				headerMap.put(arr[0], arr[1]);
@@ -83,12 +83,12 @@ public class HttpRequest {
 		setParameterMap(HttpRequestUtils.parseQueryString(queryString));		// 2. 쿼리스트링에서 파라미터를 추출한다.
 	}
 
-	private void parsePOSTParameterMap(BufferedReader br) throws Exception {
+	public void parsePOSTParameterMap(BufferedReader br) throws Exception {
 		String contentLength = getHeader("Content-Length");		// 1. 헤더에서 Content-Length 값을 추출한다.
 
 		String messageBody = IOUtils.readData(br, Integer.parseInt(contentLength));		// 2. request에서 빈 라인 \r\n 을 기준으로 MessageBody를 Content-Length만큼 추출한다.
 
-		this.parameterMap = HttpRequestUtils.parseQueryString(messageBody);		// 3. MessageBody에서 파라미터를 추출한다.
+		parameterMap = HttpRequestUtils.parseQueryString(messageBody);		// 3. MessageBody에서 파라미터를 추출한다.
 	}
 
 	private void setPath(String path) {
