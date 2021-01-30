@@ -19,25 +19,34 @@ public class HttpResponse {
 
 	private String httpVersion = "HTTP/1.1";
 	
-	private String statusCode;
+	private int statusCode;
 	
 	private String statusMessage;
 	
 	private Map<String, String> headerMap = new HashMap<>();
 	
-	private byte[] body;
+	private int DEFAULT_STATUS_CODE = 200;
+	
+	private byte[] body = "Hello World".getBytes();
 	
 	
 	public HttpResponse(OutputStream out) {
 		dos = new DataOutputStream(out);
+		initialize();
 	}
 
-	public void setStatusCode(String statusCode) {
+	private void initialize() {
+		setStatusCode(DEFAULT_STATUS_CODE);
+	}
+
+	public void setStatusCode(int statusCode) {
 		this.statusCode = statusCode;
-	}
-
-	public void setStatusMessage(String statusMessage) {
-		this.statusMessage = statusMessage;
+		
+		if (200 == statusCode) {
+			this.statusMessage = "OK";
+		} else if (302 == statusCode) {
+			this.statusMessage = "Found";
+		}
 	}
 
 	public void setHeader(String key, String value) {
@@ -68,6 +77,11 @@ public class HttpResponse {
 		headerMap.put("Set-Cookie", retValue);
 	}
 
+	public void setBody(byte[] body) {
+		this.body = body;
+		setHeader("Content-Length", String.valueOf(body.length));
+	}
+
 	public void forward(String url) {
 		try {
 			String filePath = "./webapp" + url;
@@ -79,9 +93,8 @@ public class HttpResponse {
 	}
 	
 	public void sendRedirect(String location) {
-		statusCode = "302";
+		setStatusCode(302);
 		headerMap.put("Location", location);
-		response();
 	}
 
 	public void response() {
