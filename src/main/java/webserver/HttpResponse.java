@@ -95,6 +95,7 @@ public class HttpResponse {
 	public void sendRedirect(String location) {
 		setStatusCode(302);
 		headerMap.put("Location", location);
+		response();
 	}
 
 	public void response() {

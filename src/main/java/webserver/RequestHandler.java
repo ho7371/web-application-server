@@ -68,7 +68,6 @@ public class RequestHandler extends Thread {
 				}
 			}
 			
-			res.response();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
