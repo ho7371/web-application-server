@@ -39,9 +39,9 @@ public class RequestHandler extends Thread {
 			String url = req.getPath();
 
 			if (url.endsWith(".html") || url.endsWith(".css") || url.endsWith(".js")) {
-				if (url.endsWith(".html"))		{ res.setHeader("Content-Type", "text/html;charset=utf-8");	}
-				else if (url.endsWith(".css"))	{ res.setHeader("Content-Type", "text/css");				}
-				else if (url.endsWith(".js"))	{ res.setHeader("Content-Type", "application/js");			}
+				if (url.endsWith(".html"))		{ res.addHeader("Content-Type", "text/html;charset=utf-8");	}
+				else if (url.endsWith(".css"))	{ res.addHeader("Content-Type", "text/css");				}
+				else if (url.endsWith(".js"))	{ res.addHeader("Content-Type", "application/js");			}
 				
 				res.forward(url);
 			} else if (url.equals("/user/create")) {

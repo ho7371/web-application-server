@@ -25,7 +25,7 @@ public class HttpResponseTest {
 	@Test
 	public void responseCookies() throws Exception{
 		HttpResponse response = new HttpResponse(createOutputStream("Http_Cookie.txt"));
-		response.setCookie("logined", "true");
+		response.addHeader("Set-Cookie", "logined=true");
 		response.sendRedirect("/index.html");
 	}
 	

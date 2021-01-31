@@ -49,7 +49,7 @@ public class HttpResponse {
 		}
 	}
 
-	public void setHeader(String key, String value) {
+	public void addHeader(String key, String value) {
 		headerMap.put(key, value);
 	}
 
@@ -79,7 +79,7 @@ public class HttpResponse {
 
 	public void setBody(byte[] body) {
 		this.body = body;
-		setHeader("Content-Length", String.valueOf(body.length));
+		addHeader("Content-Length", String.valueOf(body.length));
 	}
 
 	public void forward(String url) {
