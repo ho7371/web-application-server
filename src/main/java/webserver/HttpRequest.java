@@ -76,11 +76,13 @@ public class HttpRequest {
 	public void parseGETParameterMap(String str) {
 		int indexOfQuestion = str.indexOf("?");									// 1. 쿼리스트링을 추출한다.
 
-		setPath(new String(str.substring(0, indexOfQuestion)));
-
-		String queryString = new String(str.substring(indexOfQuestion + 1, str.length()));	// (index + 1을 하지 않으면 ?가 포함된다.)
-
-		setParameterMap(HttpRequestUtils.parseQueryString(queryString));		// 2. 쿼리스트링에서 파라미터를 추출한다.
+		if (indexOfQuestion > 0) {
+			setPath(new String(str.substring(0, indexOfQuestion)));
+			
+			String queryString = new String(str.substring(indexOfQuestion + 1, str.length()));	// (index + 1을 하지 않으면 ?가 포함된다.)
+			
+			setParameterMap(HttpRequestUtils.parseQueryString(queryString));		// 2. 쿼리스트링에서 파라미터를 추출한다.
+		}
 	}
 
 	public void parsePOSTParameterMap(BufferedReader br) throws Exception {
