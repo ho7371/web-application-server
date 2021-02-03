@@ -22,7 +22,7 @@ public class HttpRequestTest {
 		System.out.println(str.substring(indexOfQ + 1, length));
 		System.out.println(str.substring(0, indexOfQ));
 	}
-	
+	@Test
 	public void request_GET() throws Exception {
 		InputStream in = new FileInputStream(new File(testDirectory + "Http_GET.txt"));
 		HttpRequest request = new HttpRequest(in);
