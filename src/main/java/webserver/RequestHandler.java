@@ -31,8 +31,6 @@ public class RequestHandler extends Thread {
 
 			String url = req.getPath();
 
-			Map<String, Controller> controllerMap = new HashMap<>();
-
 			if (url.endsWith(".html") || url.endsWith(".css") || url.endsWith(".js")) {
 				
 				if (url.endsWith(".html"))		{
