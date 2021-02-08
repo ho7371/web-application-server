@@ -5,9 +5,9 @@ public abstract class AbstractController implements Controller {
 	@Override
 	public void service(HttpRequest request, HttpResponse response) {
 		
-		if ("GET".equals(request.getMethod())) {
+		if (request.getMethod().isGet()) {
 			doGet(request, response);
-		} else if ("POST".equals(request.getMethod())) {
+		} else if (request.getMethod().isPost()) {
 			doPost(request, response);
 		}
 	}
