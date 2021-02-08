@@ -25,7 +25,7 @@ public class UserLoginController extends AbstractController implements Controlle
 		
 		if (user != null && password.equals(user.getPassword())) {
 			location = "/index.html";
-			response.setCookie("logined", Boolean.toString(true));
+//			response.setCookie("logined", Boolean.toString(true));
 		} else {
 			location = "/user/login_failed.html";
 			log.debug("===== 아이디가 없거나 비밀번호가 틀렸습니다. =====");

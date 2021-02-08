@@ -12,11 +12,13 @@ import webserver.HttpResponse;
 public class HttpResponseTest {
 	private String testDirectory = "./src/test/resource/";
 	
+	@Test
 	public void responseForward() throws Exception {
 		HttpResponse response = new HttpResponse(createOutputStream("Http_Forward.txt"));
 		response.forward("/index.html");
 	}
 	
+	@Test
 	public void responseRedirect() throws Exception {
 		HttpResponse response = new HttpResponse(createOutputStream("Http_Redirect.txt"));
 		response.sendRedirect("/index.html");
@@ -29,6 +31,7 @@ public class HttpResponseTest {
 		response.sendRedirect("/index.html");
 	}
 	
+//	@Test
 	private OutputStream createOutputStream(String fileName) throws FileNotFoundException{
 		return new FileOutputStream(new File(testDirectory + fileName));
 	}

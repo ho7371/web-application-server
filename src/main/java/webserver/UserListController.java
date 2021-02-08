@@ -20,13 +20,13 @@ public class UserListController extends AbstractController implements Controller
 	
 	@Override
 	public void doGet(HttpRequest request, HttpResponse response) {
-		if (request.isLogin()) {
-			response.setCookie("logined", Boolean.toString(true));
-			response.setBody(getUserList().getBytes());
-			response.response();
-		} else {
-			response.sendRedirect("/user/login.html");
-		}
+//		if (request.isLogin()) {
+//			response.setCookie("logined", Boolean.toString(true));
+//			response.setBody(getUserList().getBytes());
+//			response.response();
+//		} else {
+//			response.sendRedirect("/user/login.html");
+//		}
 	}
 	
 	private String getUserList () {
