@@ -20,24 +20,13 @@ public class UserListController extends AbstractController implements Controller
 	
 	@Override
 	public void doGet(HttpRequest request, HttpResponse response) {
-		if (isLogin(request)) {
+		if (request.isLogin()) {
 			response.setCookie("logined", Boolean.toString(true));
 			response.setBody(getUserList().getBytes());
 			response.response();
 		} else {
 			response.sendRedirect("/user/login.html");
 		}
-	}
-	
-	private boolean isLogin(HttpRequest request) {
-		boolean logined = false;
-		// 로그인 쿠키 확인
-		String cookieStr = request.getHeader("Cookie");
-		if (cookieStr != null) {
-			String[] cookieParam = cookieStr.split("=");
-			logined = Boolean.parseBoolean(cookieParam[1]);
-		}
-		return logined;
 	}
 	
 	private String getUserList () {

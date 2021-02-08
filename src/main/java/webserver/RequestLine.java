@@ -14,7 +14,7 @@ public class RequestLine {
 
 	public String path;
 
-	public String method;
+	private HttpMethod method;
 
 	private Map<String, String> headerMap = new HashMap<>();
 
@@ -28,8 +28,8 @@ public class RequestLine {
 			throw new IllegalArgumentException(requestLine + "이 형식에 맞지 않습니다.");
 		}
 		
-		method = tokens[0];
-		if ("POST".equals(method)) {
+		method = HttpMethod.valueOf(tokens[0]);
+		if (method.isPost()) {
 			path = tokens[1];
 			return;
 		}
@@ -43,7 +43,7 @@ public class RequestLine {
 		}
 	}
 	
-	public String getMethod() {
+	public HttpMethod getMethod() {
 		return method;
 	}
 	public String getPath() {

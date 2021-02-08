@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import db.DataBase;
 import model.User;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -53,10 +54,11 @@ public class RequestHandler extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
 
-	
-
-	
-
+	public String getDefaultPath(String path) {
+		if ("/".equals(path)) {
+			return "index.html";
+		}
+		return path;
+	}
 }

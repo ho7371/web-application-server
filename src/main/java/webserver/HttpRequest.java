@@ -18,8 +18,6 @@ public class HttpRequest {
 
 	public String path;
 
-	public String method;
-
 	private Map<String, String> headerMap = new HashMap<>();
 
 	private Map<String, String> parameterMap = new HashMap<>();
@@ -30,7 +28,7 @@ public class HttpRequest {
 		return requestLine.getPath();
 	}
 
-	public String getMethod() {
+	public HttpMethod getMethod() {
 		return requestLine.getMethod();
 	}
 
@@ -63,8 +61,8 @@ public class HttpRequest {
 
 				line = br.readLine();
 			}
-
-			if ("POST".equals(getMethod())) {
+			
+			if (requestLine.getMethod().isPost()) {
 				String body = IOUtils.readData(br, Integer.parseInt(headerMap.get("Content-Length")));
 				parameterMap = HttpRequestUtils.parseQueryString(body);
 			} else {
@@ -76,5 +74,12 @@ public class HttpRequest {
 		
 	}
 
-
+	public boolean isLogin() {
+		Map<String, String> cookies = HttpRequestUtils.parseCookies(headerMap.get("Cookie"));
+		String value = cookies.get("logined");
+		if (value == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(value);
+	}
 }
